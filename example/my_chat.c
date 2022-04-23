@@ -91,7 +91,7 @@ struct memfs_file {
 	struct options* option;
     // u8 free_on_delete;
  
-    // struct stat vstat;              /* File stat */
+    struct stat *vstat;              /* File stat */
  
     pthread_mutex_t lock;
     pthread_cond_t write_finished;
@@ -376,36 +376,36 @@ static int my_chat_read(const char *path, char *buf, size_t size, off_t offset,
 
 }
 
-static int my_chat_create(const char *path, mode_t mode,
-		      struct fuse_file_info *fi)
-{
+// static int my_chat_create(const char *path, mode_t mode,
+// 		      struct fuse_file_info *fi)
+// {
 	
 	
-	const struct memfs_file *pf = __search(&root,path+1);
-	if (!pf)
-	{
+// 	const struct memfs_file *pf = __search(&root,path+1);
+// 	if (!pf)
+// 	{
 		
-		struct options *new_option=malloc(sizeof(struct options));
-		new_option->filename = strdup(path+1);
-		new_option->contents = strdup("try it\n");
+// 		struct options *new_option=malloc(sizeof(struct options));
+// 		new_option->filename = strdup(path+1);
+// 		new_option->contents = strdup("");
 
-		struct memfs_file *memnode=malloc(sizeof(struct memfs_file));
-		memnode->path=strdup(path+1);
-		memnode->option=new_option;
-		__insert(&root, memnode);
-	//  strcat (options.contents ,new_option->filename);
+// 		struct memfs_file *memnode=malloc(sizeof(struct memfs_file));
+// 		memnode->path=strdup(path+1);
+// 		memnode->option=new_option;
+// 		__insert(&root, memnode);
+// 	//  strcat (options.contents ,new_option->filename);
 
-		return 0;
+// 		return 0;
 		
 
-	}
-	else{
+// 	}
+// 	else{
 
-		return -EEXIST;
-	}
+// 		return -EEXIST;
+// 	}
 	
-	return 0;
-}
+// 	return 0;
+// }
 
 
 static int my_chat_write(const char *path, char *buf, size_t size, off_t offset,
@@ -455,6 +455,7 @@ static int my_chat_mknod(const char *path, mode_t mode, dev_t rdev)
 
 		struct memfs_file *memnode=malloc(sizeof(struct memfs_file));
 		memnode->path=strdup(path+1);
+		memnode->vstat=mode;
 		memnode->option=new_option;
 		__insert(&root, memnode);
 		return 0;
@@ -465,6 +466,9 @@ static int my_chat_mknod(const char *path, mode_t mode, dev_t rdev)
 
 		return -EEXIST;
 	}
+
+
+	
 	
 	return 0;
 }
@@ -480,7 +484,71 @@ static int my_chat__unlink(const char *path)
 {
 	int res;
 
+	__delete(&root,path+1);
+	return 0;
+}
+
+static int my_chat_mkdir(const char *path, mode_t mode)
+{
+	int res;
+
+	//todo
+
+	const struct memfs_file *pf = __search(&root,path+1);
+	if (!pf)
+	{
+		
+		struct options *new_option=malloc(sizeof(struct options));
+		new_option->filename = strdup(path+1);
+		new_option->contents = strdup("try it\n");
+
+		struct memfs_file *memnode=malloc(sizeof(struct memfs_file));
+		memnode->path=strdup(path+1);
+		memnode->vstat=S_IFDIR|mode;
+		memnode->option=new_option;
+		__insert(&root, memnode);
+		return 0;
+		
+
+	}
+	else{
+
+		return -EEXIST;
+	}
 	
+	// res = mkdir(path, mode);
+	// if (res == -1)
+	// 	return -errno;
+
+	return 0;
+}
+static int my_chat_rmdir(const char *path)
+{
+
+
+//todo
+
+	// int res;
+
+	// res = rmdir(path);
+	// if (res == -1)
+	// 	return -errno;
+
+	return 0;
+}
+
+static int my_chat_access(const char *path, int mask)
+{
+
+
+//todo
+
+	// int res;
+
+	// res = access(path, mask);
+	// if (res == -1)
+	// 	return -errno;
+
 	return 0;
 }
 static const struct fuse_operations my_chat_oper = {
@@ -490,12 +558,17 @@ static const struct fuse_operations my_chat_oper = {
 	.open		= my_chat_open,
 	.read		= my_chat_read,
 	.write		= my_chat_write,
-	.create		=my_chat_create,
+	// .create		=my_chat_create,
 	.truncate 	=my_chat_truncate,
 	.utimens	= my_chat_utimens,
 		.mknod		= my_chat_mknod,
 			.release	= my_chat_release,
 	.unlink		= my_chat__unlink,
+		.mkdir		=my_chat_mkdir,
+	.rmdir		= my_chat_rmdir,
+	.access		= my_chat_access,
+
+
 };
 
 static void show_help(const char *progname)
