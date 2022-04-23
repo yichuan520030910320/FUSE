@@ -202,8 +202,8 @@ static int my_chat_truncate(const char *path, off_t size,
 	(void) size;
 	(void) fi;
 
-	if(strcmp(path, "/") != 0)
-		return -ENOENT;
+	// if(strcmp(path, "/") != 0)
+	// 	return -ENOENT;
 
 	return 0;
 }
@@ -302,33 +302,33 @@ static int my_chat_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 
 static int my_chat_open(const char *path, struct fuse_file_info *fi)
 {
-	if (strcmp(path+1, options.filename) != 0)
-		return -ENOENT;
+	// if (strcmp(path+1, options.filename) != 0)
+	// 	return -ENOENT;
 
-	if ((fi->flags & O_ACCMODE) != O_RDONLY)
-		return -EACCES;
-	const struct memfs_file *pf = __search(&root,path+1);
-	if (pf)
-	{
-	// 	int res;
-	// 	//todo ?
+	// if ((fi->flags & O_ACCMODE) != O_RDONLY)
+	// 	return -EACCES;
+	// const struct memfs_file *pf = __search(&root,path+1);
+	// if (pf)
+	// {
+	// // 	int res;
+	// // 	//todo ?
 
-	// res = open(path, fi->flags);
-	// if (res == -1)
-	// 	return -errno;
+	// // res = open(path, fi->flags);
+	// // if (res == -1)
+	// // 	return -errno;
 
-	// fi->fh = res;
+	// // fi->fh = res;
 		
 
-		return 0;
+	// 	return 0;
 		
 
-	}
-	else{
+	// }
+	// else{
 
-		//the file doent't exsit
-		return -ENOENT;
-	}
+	// 	//the file doent't exsit
+	// 	return -ENOENT;
+	// }
 
 
 
@@ -336,21 +336,22 @@ static int my_chat_open(const char *path, struct fuse_file_info *fi)
 	return 0;
 }
 
+
+
 static int my_chat_read(const char *path, char *buf, size_t size, off_t offset,
 		      struct fuse_file_info *fi)
 {
 	size_t len;
 	(void) fi;
 
+	//  strcat (options.contents ,"www1 ");
+
 	const struct memfs_file *pf = __search(&root,path+1);
 	if (pf)
 	{
 		
-	if(strcmp(path+1, pf->option->filename) != 0)
-		{
-    strcat (options.contents ,"strings 404 can't read 1");
-			
-			return -ENOENT;}
+	
+	//  strcat (options.contents ,"www2 ");
 
 	len = strlen(pf->option->contents);
 	if (offset < len) {
@@ -386,12 +387,14 @@ static int my_chat_create(const char *path, mode_t mode,
 		
 		struct options *new_option=malloc(sizeof(struct options));
 		new_option->filename = strdup(path+1);
-		new_option->contents = strdup("");
+		new_option->contents = strdup("try it\n");
 
 		struct memfs_file *memnode=malloc(sizeof(struct memfs_file));
 		memnode->path=strdup(path+1);
 		memnode->option=new_option;
 		__insert(&root, memnode);
+	//  strcat (options.contents ,new_option->filename);
+
 		return 0;
 		
 
@@ -433,11 +436,53 @@ static int my_chat_write(const char *path, char *buf, size_t size, off_t offset,
 
 		//the file doent't exsit
 
-    strcat (options.contents ,"strings 404 can't write ");
+    // strcat (options.contents ,"strings 404 can't write ");
 		return -ENOENT;
 	}
 }
 
+static int my_chat_mknod(const char *path, mode_t mode, dev_t rdev)
+{
+	int res;
+
+	const struct memfs_file *pf = __search(&root,path+1);
+	if (!pf)
+	{
+		
+		struct options *new_option=malloc(sizeof(struct options));
+		new_option->filename = strdup(path+1);
+		new_option->contents = strdup("try it\n");
+
+		struct memfs_file *memnode=malloc(sizeof(struct memfs_file));
+		memnode->path=strdup(path+1);
+		memnode->option=new_option;
+		__insert(&root, memnode);
+		return 0;
+		
+
+	}
+	else{
+
+		return -EEXIST;
+	}
+	
+	return 0;
+}
+
+
+static int my_chat_release(const char *path, struct fuse_file_info *fi)
+{
+
+	return 0;
+}
+
+static int my_chat__unlink(const char *path)
+{
+	int res;
+
+	
+	return 0;
+}
 static const struct fuse_operations my_chat_oper = {
 	.init           = my_chat_init,
 	.getattr	= my_chat_getattr,
@@ -448,6 +493,9 @@ static const struct fuse_operations my_chat_oper = {
 	.create		=my_chat_create,
 	.truncate 	=my_chat_truncate,
 	.utimens	= my_chat_utimens,
+		.mknod		= my_chat_mknod,
+			.release	= my_chat_release,
+	.unlink		= my_chat__unlink,
 };
 
 static void show_help(const char *progname)
@@ -471,6 +519,13 @@ int main(int argc, char *argv[])
 	   values are specified */
 	options.filename = strdup("my_chat_debug");
 	options.contents = strdup("my_chat World!qwqq\n");
+	char *pre=options.contents ;
+	char * m=strdup("fuck\n");
+	options.contents=malloc(strlen(options.contents)+strlen(m)+1+200);
+	strcpy(options.contents,pre);
+	strcat(options.contents,m);
+
+
 	struct memfs_file *memnode=malloc(sizeof(struct memfs_file));
 		memnode->path=strdup(options.filename );
 		memnode->option=&options;
