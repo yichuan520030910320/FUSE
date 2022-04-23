@@ -147,3 +147,4 @@ https://lists.sourceforge.net/lists/listinfo/fuse-devel).
 
 Please report any bugs on the GitHub issue tracker at
 https://github.com/libfuse/libfuse/issues.
+# FUSE
