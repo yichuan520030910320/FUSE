@@ -334,7 +334,7 @@ static int my_chat_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 
  struct memfs_file *pentry = __search(&root,path);
  for (node =  rb_next(&pentry->node); node; node = rb_next(node)) {
-	 strcat(options.contents,"nmmd");
+	//  strcat(options.contents,"nmmd");
 	 //todo break
             const struct memfs_file *pf = rb_entry(node, struct memfs_file, node);
 
@@ -446,7 +446,7 @@ static int my_chat_read(const char *path, char *buf, size_t size, off_t offset,
 
 	}
 	else{
-    strcat (options.contents ,"strings 404 can't read 2");
+    // strcat (options.contents ,"strings 404 can't read 2");
 
 
 		//the file doent't exsit
@@ -757,21 +757,24 @@ int main(int argc, char *argv[])
 	/* Set defaults -- we have to use strdup so that
 	   fuse_opt_parse can free the defaults if other
 	   values are specified */
-	options.filename = strdup("/my_chat_debug\0");
-	options.contents = strdup("my_chat World!qwqq\n");
-	char *pre=options.contents ;
-	char * m=strdup("fuck\n");
-	options.contents=malloc(strlen(options.contents)+strlen(m)+1+500);
-	strcpy(options.contents,pre);
-	strcat(options.contents,m);
 
 
-	struct memfs_file *memnode=malloc(sizeof(struct memfs_file));
-		memnode->path=strdup(options.filename );
-		memnode->option=&options;
-		memnode->dir_or_file=2;
-		// memnode->vstat->st_mode= S_IFREG | 0444;
-		__insert(&root, memnode);
+
+	// options.filename = strdup("/my_chat_debug\0");
+	// options.contents = strdup("my_chat World!qwqq\n");
+	// char *pre=options.contents ;
+	// char * m=strdup("fuck\n");
+	// options.contents=malloc(strlen(options.contents)+strlen(m)+1+500);
+	// strcpy(options.contents,pre);
+	// strcat(options.contents,m);
+
+
+	// struct memfs_file *memnode=malloc(sizeof(struct memfs_file));
+	// 	memnode->path=strdup(options.filename );
+	// 	memnode->option=&options;
+	// 	memnode->dir_or_file=2;
+	// 	// memnode->vstat->st_mode= S_IFREG | 0444;
+	// 	__insert(&root, memnode);
 
 	/* Parse options */
 	if (fuse_opt_parse(&args, &options, option_spec, NULL) == -1)
