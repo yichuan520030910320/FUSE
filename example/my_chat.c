@@ -496,6 +496,42 @@ static int my_chat_write(const char *path, char *buf, size_t size, off_t offset,
 	const struct memfs_file *pf = __search(&root,path);
 	if (pf)
 	{
+
+
+
+//echo  "yes" > bot1/bot2 to write two file
+		if (strchr(path + 1, '/')) {
+
+	memcpy(pf->option->contents+ offset, buf, size);
+
+//another path
+		const char* str = path;     
+   const char ch = '/';
+   char *ret;
+   char *str1=malloc(strlen(str));
+   ret = strchr(str+1, ch);
+   strcpy(str1, ret);
+ strncat(str1, str, strlen(str)-strlen(ret));
+
+ const struct memfs_file *pf1 = __search(&root,str1);
+  if(!pf1){
+
+		return -ENOENT;
+
+  }
+
+	memcpy(pf1->option->contents+ offset, buf, size);
+
+
+
+
+
+		return size;
+        }
+
+
+
+
 	memcpy(pf->option->contents+ offset, buf, size);
 		
 	
