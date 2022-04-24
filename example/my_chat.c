@@ -229,7 +229,7 @@ static int my_chat_getattr(const char *path, struct stat *stbuf,
 	// if (strcmp(path, "/") == 0) {
 	// 	stbuf->st_mode = S_IFDIR | 0755;
 	// 	stbuf->st_nlink = 2;
-	// } else if (strcmp(path+1, options.filename) == 0) {
+	// } else if (strcmp(path, options.filename) == 0) {
 	// 	stbuf->st_mode = S_IFREG | 0444;
 	// 	stbuf->st_nlink = 1;
 	// 	stbuf->st_size = strlen(options.contents);
@@ -252,7 +252,7 @@ static int my_chat_getattr(const char *path, struct stat *stbuf,
 		stbuf->st_nlink = 2;
 	} else {
 		
-		const struct memfs_file *pf = __search(&root,path+1);
+		const struct memfs_file *pf = __search(&root,path);
 
 if (!pf)
 	{
@@ -265,7 +265,7 @@ if (!pf)
 
 
 	// stbuf=pf->vstat;
-		if (pf->dir_or_file==2&&strcmp(path+1, pf->option->filename) == 0) {
+		if (pf->dir_or_file==2&&strcmp(path, pf->option->filename) == 0) {
 		stbuf->st_mode = S_IFREG | 0444;
 		stbuf->st_nlink = 1;
 		stbuf->st_size = strlen(pf->option->contents);
@@ -280,6 +280,24 @@ if (!pf)
 	return res;
 }
 
+
+
+static inline const char *__is_parent(const char *parent, const char *path)
+{
+    const char delim = '/';
+ 
+    if (parent[1] == '\0' && parent[0] == '/' && path[0] == '/') {
+        return path;
+    }
+ 
+    while (*parent != '\0' && *path != '\0' && *parent == *path) {
+        ++parent, ++path;
+    }
+    return (*parent == '\0' && *path == delim) ? path : NULL;
+}
+
+// get a utility from https://blog.csdn.net/stayneckwind2/article/details/82876330
+
 static int my_chat_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 			 off_t offset, struct fuse_file_info *fi,
 			 enum fuse_readdir_flags flags)
@@ -288,30 +306,86 @@ static int my_chat_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 	(void) fi;
 	(void) flags;
 
-	if (strcmp(path, "/") != 0)
-		return -ENOENT;
+	// if (strcmp(path, "/") != 0)
+	// 	return -ENOENT;
 
 	filler(buf, ".", NULL, 0, 0);
 	filler(buf, "..", NULL, 0, 0);
 	// filler(buf, options.filename, NULL, 0, 0);
 
 	struct rb_node *node = NULL;
-        for (node = rb_first(&root); node; node = rb_next(node)) {
+
+
+	if (strcmp(path, "/") == 0)
+       { for (node = rb_first(&root); node; node = rb_next(node)) {
             const struct memfs_file *pf = rb_entry(node, struct memfs_file, node);
-            filler(buf,pf->option->filename,NULL,0,0);
+			// strcat(options.contents,pf->option->filename);
+			if (strchr(pf->option->filename+ 1, '/')) {
+            continue;
         }
+            filler(buf,pf->option->filename+1,NULL,0,0);
+        }}
+		else {
+
+//todo read in dir
+
+
+ struct memfs_file *pentry = __search(&root,path);
+ for (node =  rb_next(&pentry->node); node; node = rb_next(node)) {
+	 strcat(options.contents,"nmmd");
+	 //todo break
+            const struct memfs_file *pf = rb_entry(node, struct memfs_file, node);
+
+			 const char *basename = __is_parent(path, pf->path);
+ 
+        if (!basename) {
+            break;
+        }
+		//avoid /xxx/xxx/xxx
+		if (strchr(basename + 1, '/')) {
+            continue;
+        }
+
+            filler(buf,basename + 1,NULL,0,0);
+        }
+
+
+
+
+		
+//  for (node =  rb_first(&root); node; node = rb_next(node)) {
+
+
+
+// 	 //todo break
+//             const struct memfs_file *pf = rb_entry(node, struct memfs_file, node);
+// 			//todo
+
+// 			 const char *basename = __is_parent(path, pf->path);
+ 
+//         if (!basename) {
+//             continue;
+//         }
+// 		if (strchr(basename + 1, '/')) {
+//             continue;
+//         }
+//             filler(buf,pf->option->filename+1,NULL,0,0);
+//         }
+
+ 
+		}
 
 	return 0;
 }
 
 static int my_chat_open(const char *path, struct fuse_file_info *fi)
 {
-	// if (strcmp(path+1, options.filename) != 0)
+	// if (strcmp(path, options.filename) != 0)
 	// 	return -ENOENT;
 
 	// if ((fi->flags & O_ACCMODE) != O_RDONLY)
 	// 	return -EACCES;
-	// const struct memfs_file *pf = __search(&root,path+1);
+	// const struct memfs_file *pf = __search(&root,path);
 	// if (pf)
 	// {
 	// // 	int res;
@@ -350,7 +424,7 @@ static int my_chat_read(const char *path, char *buf, size_t size, off_t offset,
 
 	//  strcat (options.contents ,"www1 ");
 
-	const struct memfs_file *pf = __search(&root,path+1);
+	const struct memfs_file *pf = __search(&root,path);
 	if (pf)
 	{
 		
@@ -385,16 +459,16 @@ static int my_chat_read(const char *path, char *buf, size_t size, off_t offset,
 // {
 	
 	
-// 	const struct memfs_file *pf = __search(&root,path+1);
+// 	const struct memfs_file *pf = __search(&root,path);
 // 	if (!pf)
 // 	{
 		
 // 		struct options *new_option=malloc(sizeof(struct options));
-// 		new_option->filename = strdup(path+1);
+// 		new_option->filename = strdup(path);
 // 		new_option->contents = strdup("");
 
 // 		struct memfs_file *memnode=malloc(sizeof(struct memfs_file));
-// 		memnode->path=strdup(path+1);
+// 		memnode->path=strdup(path);
 // 		memnode->option=new_option;
 // 		__insert(&root, memnode);
 // 	//  strcat (options.contents ,new_option->filename);
@@ -417,7 +491,7 @@ static int my_chat_write(const char *path, char *buf, size_t size, off_t offset,
 {
 
 
-	const struct memfs_file *pf = __search(&root,path+1);
+	const struct memfs_file *pf = __search(&root,path);
 	if (pf)
 	{
 	memcpy(pf->option->contents+ offset, buf, size);
@@ -449,17 +523,17 @@ static int my_chat_mknod(const char *path, mode_t mode, dev_t rdev)
 {
 	int res;
 
-	const struct memfs_file *pf = __search(&root,path+1);
+	const struct memfs_file *pf = __search(&root,path);
 	if (!pf)
 	{
 		
 		struct options *new_option=malloc(sizeof(struct options));
-		new_option->filename = strdup(path+1);
+		new_option->filename = strdup(path);
 		new_option->contents = strdup("try it\n");
 
 
 		struct memfs_file *memnode=malloc(sizeof(struct memfs_file));
-		memnode->path=strdup(path+1);
+		memnode->path=strdup(path);
 		memnode->dir_or_file=2;
 		// memnode->vstat=mode;
 		// memnode->vstat->st_mode= S_IFREG | 0444;
@@ -491,7 +565,7 @@ static int my_chat__unlink(const char *path)
 {
 	int res;
 
-	__delete(&root,path+1);
+	__delete(&root,path);
 	return 0;
 }
 
@@ -501,16 +575,16 @@ static int my_chat_mkdir(const char *path, mode_t mode)
 
 	//todo
 
-	const struct memfs_file *pf = __search(&root,path+1);
+	const struct memfs_file *pf = __search(&root,path);
 	if (!pf)
 	{
 		
 		struct options *new_option=malloc(sizeof(struct options));
-		new_option->filename = strdup(path+1);
+		new_option->filename = strdup(path);
 		new_option->contents = strdup("try it\n");
 
 		struct memfs_file *memnode=malloc(sizeof(struct memfs_file));
-		memnode->path=strdup(path+1);
+		memnode->path=strdup(path);
 		memnode->dir_or_file=1;
 		memnode->option=new_option;
 		__insert(&root, memnode);
@@ -597,11 +671,11 @@ int main(int argc, char *argv[])
 	/* Set defaults -- we have to use strdup so that
 	   fuse_opt_parse can free the defaults if other
 	   values are specified */
-	options.filename = strdup("my_chat_debug");
+	options.filename = strdup("/my_chat_debug\0");
 	options.contents = strdup("my_chat World!qwqq\n");
 	char *pre=options.contents ;
 	char * m=strdup("fuck\n");
-	options.contents=malloc(strlen(options.contents)+strlen(m)+1+200);
+	options.contents=malloc(strlen(options.contents)+strlen(m)+1+500);
 	strcpy(options.contents,pre);
 	strcat(options.contents,m);
 
