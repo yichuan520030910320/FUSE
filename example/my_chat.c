@@ -528,6 +528,54 @@ static int my_chat_mknod(const char *path, mode_t mode, dev_t rdev)
 	const struct memfs_file *pf = __search(&root,path);
 	if (!pf)
 	{
+
+
+		if (strchr(path + 1, '/')) {
+
+
+            //echo "aaa" > bot1/bot2 need to create two file to support the chat function
+
+
+		struct options *new_option=malloc(sizeof(struct options));
+		new_option->filename = strdup(path);
+		new_option->contents = strdup("");
+
+
+		struct memfs_file *memnode=malloc(sizeof(struct memfs_file));
+		memnode->path=strdup(path);
+		memnode->dir_or_file=2;
+		memnode->option=new_option;
+		__insert(&root, memnode);
+
+//another path
+		const char* str = path;     
+   const char ch = '/';
+   char *ret;
+   char *str1=malloc(strlen(str));
+   ret = strchr(str+1, ch);
+   strcpy(str1, ret);
+ strncat(str1, str, strlen(str)-strlen(ret));
+
+
+ new_option=malloc(sizeof(struct options));
+		new_option->filename = strdup(str1);
+		new_option->contents = strdup("");
+
+
+		memnode=malloc(sizeof(struct memfs_file));
+		memnode->path=strdup(str1);
+		memnode->dir_or_file=2;
+		memnode->option=new_option;
+		__insert(&root, memnode);
+
+
+
+
+		return 0;
+        }
+
+		
+		
 		
 		struct options *new_option=malloc(sizeof(struct options));
 		new_option->filename = strdup(path);
