@@ -1,3 +1,38 @@
+# CMD
+
+in the dir example
+
+the test example 
+
+```
+
+mkdir test
+gcc -Wall rbtree.c my_chat.c `pkg-config fuse3 --cflags --libs` -o my_chat
+./my_chat test
+cd test
+ls
+mkdir bot1
+mkdir bot2
+echo "HELLO" > bot1/bot2
+ls
+cd bot1
+ls
+cat bot2
+cd ..
+ls
+cd bot2
+ls
+cat bot1
+cd ..
+
+```
+
+
+
+
+
+
+
 libfuse
 =======
 
@@ -147,4 +182,5 @@ https://lists.sourceforge.net/lists/listinfo/fuse-devel).
 
 Please report any bugs on the GitHub issue tracker at
 https://github.com/libfuse/libfuse/issues.
+
 # FUSE
