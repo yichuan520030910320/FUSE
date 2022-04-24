@@ -277,8 +277,10 @@ if (!pf)
 	else
 	{	res = -ENOENT;}
 }
+
 	return res;
 }
+
 
 
 
@@ -529,7 +531,7 @@ static int my_chat_mknod(const char *path, mode_t mode, dev_t rdev)
 		
 		struct options *new_option=malloc(sizeof(struct options));
 		new_option->filename = strdup(path);
-		new_option->contents = strdup("try it\n");
+		new_option->contents = strdup("");
 
 
 		struct memfs_file *memnode=malloc(sizeof(struct memfs_file));
@@ -581,7 +583,7 @@ static int my_chat_mkdir(const char *path, mode_t mode)
 		
 		struct options *new_option=malloc(sizeof(struct options));
 		new_option->filename = strdup(path);
-		new_option->contents = strdup("try it\n");
+	
 
 		struct memfs_file *memnode=malloc(sizeof(struct memfs_file));
 		memnode->path=strdup(path);
