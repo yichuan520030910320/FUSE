@@ -90,6 +90,7 @@ struct memfs_file {
     void *data;                     /* File content *///maybe useless
 	struct options* option;
     // u8 free_on_delete;
+	int dir_or_file;			//1 stand for dir 2 stand for file
  
     struct stat *vstat;              /* File stat */
  
@@ -261,13 +262,16 @@ if (!pf)
 		return -ENOENT;
 
 	}
-		if (strcmp(path+1, pf->option->filename) == 0) {
+
+
+	// stbuf=pf->vstat;
+		if (pf->dir_or_file==2&&strcmp(path+1, pf->option->filename) == 0) {
 		stbuf->st_mode = S_IFREG | 0444;
 		stbuf->st_nlink = 1;
 		stbuf->st_size = strlen(pf->option->contents);
-
-		
-		
+	}else if(pf->dir_or_file==1) {
+		stbuf->st_mode = S_IFDIR | 0755;
+		stbuf->st_nlink = 2;
 	}
 
 	else
@@ -453,9 +457,12 @@ static int my_chat_mknod(const char *path, mode_t mode, dev_t rdev)
 		new_option->filename = strdup(path+1);
 		new_option->contents = strdup("try it\n");
 
+
 		struct memfs_file *memnode=malloc(sizeof(struct memfs_file));
 		memnode->path=strdup(path+1);
-		memnode->vstat=mode;
+		memnode->dir_or_file=2;
+		// memnode->vstat=mode;
+		// memnode->vstat->st_mode= S_IFREG | 0444;
 		memnode->option=new_option;
 		__insert(&root, memnode);
 		return 0;
@@ -468,7 +475,7 @@ static int my_chat_mknod(const char *path, mode_t mode, dev_t rdev)
 	}
 
 
-	
+
 	
 	return 0;
 }
@@ -504,7 +511,7 @@ static int my_chat_mkdir(const char *path, mode_t mode)
 
 		struct memfs_file *memnode=malloc(sizeof(struct memfs_file));
 		memnode->path=strdup(path+1);
-		memnode->vstat=S_IFDIR|mode;
+		memnode->dir_or_file=1;
 		memnode->option=new_option;
 		__insert(&root, memnode);
 		return 0;
@@ -516,9 +523,9 @@ static int my_chat_mkdir(const char *path, mode_t mode)
 		return -EEXIST;
 	}
 	
-	// res = mkdir(path, mode);
-	// if (res == -1)
-	// 	return -errno;
+	res = mkdir(path, mode);
+	if (res == -1)
+		return -errno;
 
 	return 0;
 }
@@ -602,6 +609,8 @@ int main(int argc, char *argv[])
 	struct memfs_file *memnode=malloc(sizeof(struct memfs_file));
 		memnode->path=strdup(options.filename );
 		memnode->option=&options;
+		memnode->dir_or_file=2;
+		// memnode->vstat->st_mode= S_IFREG | 0444;
 		__insert(&root, memnode);
 
 	/* Parse options */
