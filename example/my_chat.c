@@ -44,8 +44,8 @@
  * different values on the command line.
  */
 struct options {
-	const char *filename;
-	const char *contents;
+	 char *filename;
+	char *contents;
 	int show_help;
 } option[NUM_NODES];
 struct options options;
@@ -87,7 +87,7 @@ struct rb_root root = RB_ROOT;
 
 struct memfs_file {
     char *path;                     /* File path */
-    void *data;                     /* File content *///maybe useless
+    char *data;                     /* File content *///maybe useless
 	struct options* option;
     // u8 free_on_delete;
 	int dir_or_file;			//1 stand for dir 2 stand for file
@@ -433,14 +433,16 @@ static int my_chat_read(const char *path, char *buf, size_t size, off_t offset,
 	
 	//  strcat (options.contents ,"www2 ");
 
-	len = strlen(pf->option->contents);
-	if (offset < len) {
-		if (offset + size > len)
-			size = len - offset;
-		memcpy(buf, pf->option->contents+ offset, size);
+	strcpy(buf,pf->option->contents);
 
-	} else
-		size = 0;
+	// len = strlen(pf->option->contents);
+	// if (offset < len) {
+	// 	if (offset + size > len)
+	// 		size = len - offset;
+	// 	memcpy(buf, pf->option->contents+ offset, size);
+
+	// } else
+	// 	size = 0;
 
 	return size;
 
@@ -487,7 +489,6 @@ static int my_chat_read(const char *path, char *buf, size_t size, off_t offset,
 // 	return 0;
 // }
 
-
 static int my_chat_write(const char *path, char *buf, size_t size, off_t offset,
 		      struct fuse_file_info *fi)
 {
@@ -502,7 +503,14 @@ static int my_chat_write(const char *path, char *buf, size_t size, off_t offset,
 //echo  "yes" > bot1/bot2 to write two file
 		if (strchr(path + 1, '/')) {
 
-	memcpy(pf->option->contents+ offset, buf, size);
+
+			char *pre=malloc(strlen(pf->option->contents));
+			strcpy(pre,pf->option->contents);
+			pf->option->contents=malloc(strlen(pre)+strlen(buf)+1);
+			strcpy(pf->option->contents,pre);
+strcat (pf->option->contents,buf);
+
+	// memcpy(pf->option->contents+ offset, buf, size);
 
 //another path
 		const char* str = path;     
@@ -520,7 +528,16 @@ static int my_chat_write(const char *path, char *buf, size_t size, off_t offset,
 
   }
 
-	memcpy(pf1->option->contents+ offset, buf, size);
+
+
+
+ char *pre1=malloc(strlen(pf1->option->contents));
+			strcpy(pre1,pf1->option->contents);
+			pf1->option->contents=malloc(strlen(pre1)+strlen(buf)+1);
+			strcpy(pf1->option->contents,pre1);
+strcat (pf1->option->contents,buf);
+
+	// memcpy(pf1->option->contents+ offset, buf, size);
 
 
 
@@ -531,8 +548,13 @@ static int my_chat_write(const char *path, char *buf, size_t size, off_t offset,
 
 
 
+char *pre=malloc(strlen(pf->option->contents));
+			strcpy(pre,pf->option->contents);
+			pf->option->contents=malloc(strlen(pre)+strlen(buf)+1);
+			strcpy(pf->option->contents,pre);
+strcat (pf->option->contents,buf);
 
-	memcpy(pf->option->contents+ offset, buf, size);
+	// memcpy(pf->option->contents+ offset, buf, size);
 		
 	
 
@@ -559,7 +581,6 @@ static int my_chat_write(const char *path, char *buf, size_t size, off_t offset,
 
 static int my_chat_mknod(const char *path, mode_t mode, dev_t rdev)
 {
-	int res;
 
 	const struct memfs_file *pf = __search(&root,path);
 	if (!pf)
@@ -574,7 +595,9 @@ static int my_chat_mknod(const char *path, mode_t mode, dev_t rdev)
 
 		struct options *new_option=malloc(sizeof(struct options));
 		new_option->filename = strdup(path);
-		new_option->contents = strdup("");
+		// new_option->contents = malloc(0);
+		new_option->contents = "";
+
 
 
 		struct memfs_file *memnode=malloc(sizeof(struct memfs_file));
@@ -649,7 +672,6 @@ static int my_chat_release(const char *path, struct fuse_file_info *fi)
 
 static int my_chat__unlink(const char *path)
 {
-	int res;
 
 	__delete(&root,path);
 	return 0;
