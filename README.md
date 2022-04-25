@@ -27,9 +27,29 @@ cd ..
 
 ```
 
+#### feature 
+
+- 支持删除聊天记录
+
+只有在根目录才有权限去删除聊天记录
+
+```
+mkdir bot1
+mkdir bot2
+echo HELLO > bot1/bot2
+cd bot1
+ls
+cat bot2
+rm  bot2
+cd bot1
+ls
+```
 
 
 
+- 一定的鲁棒性
+
+在函数返回时会有特定信号量，比如不能创建已经存在的文件，会返回-EEXIST,比如不能删除未存在的节点，会返回-ENOENT
 
 
 

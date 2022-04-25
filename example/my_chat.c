@@ -672,8 +672,22 @@ static int my_chat_release(const char *path, struct fuse_file_info *fi)
 
 static int my_chat__unlink(const char *path)
 {
+const struct memfs_file *pf = __search(&root,path);
+	if (pf)
+	{
+		
+			__delete(&root,path);
 
-	__delete(&root,path);
+		return 0;
+		
+
+	}
+	else{
+
+		return -ENOENT;
+	}
+
+
 	return 0;
 }
 
@@ -711,8 +725,140 @@ static int my_chat_mkdir(const char *path, mode_t mode)
 
 	return 0;
 }
+
+int is_in(char *s, char *c)
+{
+    int i=0,j=0,flag=-1;
+    while(i<strlen(s) && j<strlen(c)){
+        if(s[i]==c[j]){//如果字符相同则两个字符都增加
+            i++;
+            j++;
+        }else{
+            i=i-j+1; //主串字符回到比较最开始比较的后一个字符
+            j=0;     //字串字符重新开始
+        }
+        if(j==strlen(c)){ //如果匹配成功
+            flag=1;  //字串出现
+            break;
+        }
+    }
+    return flag;
+}
+
 static int my_chat_rmdir(const char *path)
 {
+
+	const struct memfs_file *pf = __search(&root,path);
+	if (pf)
+	{
+	__delete(&root,path);
+	// if(strchr(pf->option->filename+ 1, '/')){
+	// 	return 0;
+	// }
+
+	// if (pf->dir_or_file==1)
+	// {
+
+		//if its a dir rm the user and remove all record about it
+		//only in the root can remove usr
+
+		/* code */
+	struct rb_node *node = NULL;
+
+	 int n = 3;
+  int lens = 10;
+  int remove_cnt=0;
+  
+  char**pps8Output = (char **) malloc(300 * sizeof(char *));
+  
+  
+
+		 for (node =  rb_first(&root); node; node = rb_next(node)) {
+
+	// strcat(options.contents,"L");
+	// strcat(options.contents,"\n");
+
+
+
+	 //todo break
+            const struct memfs_file *pf1 = rb_entry(node, struct memfs_file, node);
+			//todo
+			if(pf1->dir_or_file==2){
+
+
+				  char* str0 = "/bot1/bot2";
+ char* ch = "/bot2";
+    char *ret;
+    // ret = strstr(str0, ch);
+    // if (is_in(str0,ch))
+    // {
+    //   	strcat(options.contents,"yes");
+
+    //     /* code */
+    // }
+	// strcat(options.contents,"P");
+	// strcat(options.contents,"\n");
+
+	// strcat(options.contents,pf1->path);
+	// strcat(options.contents,"\n");
+
+	// strcat(options.contents,path);
+
+	// strcat(options.contents,"\n");
+
+  *ret=NULL;
+
+ char * tmp_path= strdup(pf1->path);;
+//  strcpy(tmp_path,pf1->path);
+ char * tmp_path1=strdup(path);
+//  strcpy(tmp_path1,path);
+ 
+//    ret = strstr(tmp_path,tmp_path1);
+				if(is_in(tmp_path,tmp_path1)==1){
+	// __delete(&root,pf1->path);
+	// strcat(options.contents,"in");
+
+
+	 pps8Output[remove_cnt++] = strdup(pf1->path);
+
+				}
+			}
+
+
+        }
+	// strcat(options.contents,"K");
+
+
+		for (int i = 0; i < remove_cnt; i++) 
+  {
+	// strcat(options.contents,"del");
+	// strcat(options.contents,pps8Output[i]);
+
+
+      __delete(&root,pps8Output[i]);
+  }
+
+		 
+  ///< free
+  for (int i = 0; i < remove_cnt; i++) 
+  {
+      free(pps8Output[i]);
+  }
+  free(pps8Output);
+	// }
+	
+		
+	
+		return 0;
+		
+
+	}
+	else{
+
+		return -ENOENT;
+	}
+
+
 
 
 //todo
