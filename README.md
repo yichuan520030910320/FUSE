@@ -5,7 +5,6 @@ in the dir example
 the test example 
 
 ```
-
 mkdir test
 gcc -Wall rbtree.c my_chat.c `pkg-config fuse3 --cflags --libs` -o my_chat
 ./my_chat test
